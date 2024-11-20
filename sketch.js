@@ -1,5 +1,5 @@
 let table;
-let outflows = {}; // Oggetto per memorizzare sbocchi (seas) e i fiumi associati
+let outflows = {}; // Oggetto per memorizzare gli outflows e i fiumi associati
 
 function preload() {
   //file di riferimento .CSV
@@ -7,67 +7,63 @@ function preload() {
 }
 
 function setup() {
-  // Imposta il canvas per adattarsi alle dimensioni della finestra
-  createCanvas(windowWidth, windowHeight); // Canvas responsivo
-  textFont('Gill Sans'); // Font per titolo e testi
+  createCanvas(windowWidth, windowHeight); //  responsive
+  textFont('Gill Sans'); 
   noLoop();
 
-  // Organizza i fiumi in base al loro sbocco
+  //fiumi in base al loro outflows
   for (let i = 0; i < table.getRowCount(); i++) {
     let row = table.getRow(i);
-    let riverName = row.getString('name'); // Nome del fiume
+    let riverName = row.getString('name'); 
     let outflow = row.getString('outflow');
     
-    // Crea un array per lo sbocco se non esiste
+    //controlla se esite un outflows del fiumee
     if (!outflows[outflow]) {
       outflows[outflow] = [];
     }
     
-    // Aggiunge il fiume alla lista dello sbocco
+    // Aggiunge il nome fiume alla lista 
     outflows[outflow].push(riverName);
   }
 
-  // Aggiorna dinamicamente l'altezza del canvas in base ai dati
-  let totalElements = table.getRowCount(); // Numero totale di fiumi
-  resizeCanvas(windowWidth, max(windowHeight, totalElements * 20 + 300)); // 300px per lo spazio del titolo
+  //l'altezza del canvas in base ai dati
+  let totalElements = table.getRowCount(); 
+  resizeCanvas(windowWidth, max(windowHeight, totalElements * 20 + 300)); 
 }
 
 function draw() {
-  // Aggiorna il colore di sfondo in base alla larghezza della finestra
+  //colore dello sfondo
   let bgColor = getResponsiveBackgroundColor(windowWidth);
-  background(bgColor); // Colore di sfondo responsivo
-
-  // Disegna il titolo
+  background(bgColor); 
+  // titolo
   drawTitle();
 
-  // Parametri di layout per i dati (partendo dopo il titolo)
-  let leftMargin = width * 0.25; // Margine sinistro per il nome dei fiumi
-  let rightMargin = width * 0.75; // Posizione per i cerchi degli sbocchi
-  let textOffset = 30; // Distanza tra cerchio e nome del mare
+  //layout per i dati 
+  let leftMargin = width * 0.25; 
+  let rightMargin = width * 0.75; 
+  let textOffset = 30; 
   let lineSpacing = (height - 200) / (table.getRowCount() + 2); // Spaziatura dinamica tra i fiumi
-  let radius = 10; // Raggio dei cerchi degli sbocchi
+  let radius = 10; // Raggio dei cerchi 
 
   // Posizioni dinamiche degli sbocchi
-  let outflowPositions = {}; // Posizioni verticali degli sbocchi
+  let outflowPositions = {}; 
   let index = 0;
 
   // Posiziona i cerchi degli sbocchi uniformemente
   let outflowSpacing = (height - 200) / (Object.keys(outflows).length + 1);
   for (let outflow in outflows) {
-    let yPos = outflowSpacing * (index + 3); // Spaziatura verticale dinamica
+    let yPos = outflowSpacing * (index + 3); 
     outflowPositions[outflow] = yPos;
 
-    // Colore in base al numero di fiumi associati
+    
     let numRivers = outflows[outflow].length;
     let outflowColor = getOutflowColor(numRivers);
-
-    // Disegna il cerchio dello sbocco senza bordo
     fill(outflowColor);
     noStroke();
     ellipse(rightMargin, yPos, radius * 4);
 
-    // Aggiunge il nome dello sbocco (mare), spostato a destra del cerchio
-    fill(255); // Testo bianco
+    //il nome dello sbocco, spostato a destra del cerchio
+    fill(255);
     textSize(14);
     textAlign(LEFT, CENTER);
     text(outflow, rightMargin + textOffset, yPos);
@@ -75,33 +71,30 @@ function draw() {
     index++;
   }
 
-  // Disegna i nomi dei fiumi e le linee
+  //nomi dei fiumi e le linee
   for (let i = 0; i < table.getRowCount(); i++) {
     let row = table.getRow(i);
-    let riverName = row.getString('name');  // Nome del fiume
+    let riverName = row.getString('name');  
     let outflow = row.getString('outflow');
 
-    // Posizione verticale dinamica per i fiumi
+  
     let yPos = lineSpacing * (i + 1) + 100;
-
-    // Posizione corrispondente dello sbocco
+    // Posizione corrispondente ai mari
     let outflowPosY = outflowPositions[outflow];
-
-    // Calcola l'area del fiume
+    //considera 'area' dati
     let area = row.getNum('area');
 
-    // Spessore della linea in base all'area del fiume (ridotto)
+    // Spessore della linea in base all'area 
     let lineThickness = map(area, 1000, 3000000, 1, 8);
-
-    // Colore del fiume (può restare basato sulla lunghezza se necessario)
+    //colore in base a 'length'
     let length = row.getNum('length');
     let riverColor = getRiverColor(length);
 
     // Posizione iniziale della linea
-    let startX = leftMargin + 80; // La linea inizia a 80px dalla sinistra
+    let startX = leftMargin + 80; 
     drawCurvedLine(startX, yPos, rightMargin, outflowPosY, riverColor, lineThickness);
 
-    // Allinea il nome del fiume a destra del margine sinistro
+    // Allinea il nome del fiume a destra 
     fill(255);
     noStroke();
     textSize(12);
@@ -109,78 +102,77 @@ function draw() {
     text(riverName, startX - 10, yPos);
   }
 
-    // Draw the legend
+    // legenda
   drawLegend();
 }
 
-// Function to get the river color based on length (5 color levels)
+// il colore del fiume in base alla lunghezza (5 livelli di colore)
 function getRiverColor(length) {
   let colorValue;
   
-  // Map length to 5 intervals, from shortest to longest
+  //dal più corto al più lungo 
   if (length < 1400) {
-    colorValue = color(204, 255, 255); // Lighter color
+    colorValue = color(204, 255, 255); 
   } else if (length < 2800) {
-    colorValue = color(153, 204, 255); // Lighter but darker than the first
+    colorValue = color(153, 204, 255); 
   } else if (length < 4200) {
-    colorValue = color(102, 153, 255); // Intermediate color
+    colorValue = color(102, 153, 255); 
   } else if (length < 5600) {
-    colorValue = color(51, 102, 255); // Darker color
+    colorValue = color(51, 102, 255); 
   } else {
-    colorValue = color(0, 51, 255); // Very dark color
+    colorValue = color(0, 51, 255); 
   }
 
   return colorValue;
 }
 
-// Function to get the outflow color based on the number of rivers associated
+//Funzione per ottenere il colore del outflows in base al numero di fiumi associati
 function getOutflowColor(numRivers) {
   let colorValue;
 
-  // Map number of rivers to 5 color intervals (light to dark purple)
+ 
   if (numRivers <= 2) {
-    colorValue = color(238, 174, 255); // Light purple
+    colorValue = color(238, 174, 255);
   } else if (numRivers <= 5) {
-    colorValue = color(204, 129, 255); // Medium light purple
+    colorValue = color(204, 129, 255); 
   } else if (numRivers <= 8) {
-    colorValue = color(153, 51, 255); // Medium purple
+    colorValue = color(153, 51, 255); 
   } else if (numRivers <= 12) {
-    colorValue = color(102, 0, 204); // Dark purple
+    colorValue = color(102, 0, 204); 
   } else {
-    colorValue = color(51, 0, 102); // Very dark purple
+    colorValue = color(51, 0, 102); 
   }
 
   return colorValue;
 }
 
-// Function to draw a curved line from the river name to the outflow circle
+//per disegnare una linea curva dal nome del fiume al cerchio di outflows
 function drawCurvedLine(xStart, yStart, xEnd, yEnd, riverColor, lineThickness) {
   noFill();
-  stroke(riverColor); // Use the calculated river color for the line
-  strokeWeight(lineThickness); // Use the calculated line thickness
+  stroke(riverColor); 
+  strokeWeight(lineThickness); 
 
-  // Draw a curved line
-  let controlPointX1 = xStart + (xEnd - xStart) * 0.3; // Left control point
-  let controlPointX2 = xStart + (xEnd - xStart) * 0.7; // Right control point
+  //punti di controllo per la curva
+  let controlPointX1 = xStart + (xEnd - xStart) * 0.3; 
+  let controlPointX2 = xStart + (xEnd - xStart) * 0.7; 
   bezier(xStart, yStart, controlPointX1, yStart, controlPointX2, yEnd, xEnd, yEnd);
 }
 
-// Function to draw the title
+//titolo legensa
 function drawTitle() {
-  fill(255); // White color for title text
+  fill(255); 
   textSize(48);
   textAlign(CENTER, CENTER);
-  text('Rivers in the World', width / 2, 80); // Centered title at the top of the canvas
+  text('Rivers in the World', width / 2, 80); 
 }
 
-// Function to get the responsive background color based on window width
+// per rendere responsive lo sfondo 
 function getResponsiveBackgroundColor(windowWidth) {
-  // Change background color to much darker shades
-  let r = map(windowWidth, 300, 2000, 0, 20); // Darker red
-  let g = map(windowWidth, 300, 2000, 0, 20); // Darker green
-  let b = map(windowWidth, 300, 2000, 40, 80); // Darker blue
+  let r = map(windowWidth, 300, 2000, 0, 20); 
+  let g = map(windowWidth, 300, 2000, 0, 20); 
+  let b = map(windowWidth, 300, 2000, 40, 80); 
 
-  return color(r, g, b); // Return dark color based on the window width
+  return color(r, g, b); 
 }
 
 // Funzione per disegnare la legenda
@@ -189,49 +181,49 @@ function drawLegend() {
   let legendY = height * 0.78;
   let boxWidth = 50;
   let boxHeight = 20;
-  let radius = 10; // Radius for rounded corners of rectangles
+  let radius = 10; 
   
-  fill(255); // White color for text
+  fill(255); 
   textSize(14);
   textAlign(LEFT, CENTER);
   
-  // Title for rivers
+  //titolo dei fiumi
   textSize(16);
   textStyle(BOLD);
-  text('Rivers', legendX, legendY - 30); // Position of the Rivers title
+  text('Rivers', legendX, legendY - 30); 
   textStyle(NORMAL);
   
-  // Legend for river colors
+  
   let riverColors = [color(204, 255, 255), color(153, 204, 255), color(102, 153, 255), color(51, 102, 255), color(0, 51, 255)];
   let riverLabels = ['< 1400 km', '1400 - 2800 km', '2800 - 4200 km', '4200 - 5600 km', '>= 5600 km'];
 
   for (let i = 0; i < riverColors.length; i++) {
     fill(riverColors[i]);
     rect(legendX, legendY + i * (boxHeight + 10), boxWidth, boxHeight, radius); 
-    fill(255); // White text color
+    fill(255); 
     textSize(12);
     text(riverLabels[i], legendX + boxWidth + 10, legendY + i * (boxHeight + 10) + boxHeight / 2);
   }
 
-  // Line thickness description
+
   textSize(11);
   textAlign(LEFT, CENTER);
   text('Line thickness: the greater the river area, the thicker the line', legendX, legendY + riverColors.length * (boxHeight + 10) + 20);
   
-  // Title for Outflows (moved higher)
+  //titolo degli outflow
   textSize(16);
   textStyle(BOLD);
   text('Outflows', legendX, legendY + (riverColors.length + 2) * (boxHeight + 10) + 10); // Moved higher
   textStyle(NORMAL);
 
-  // Legend for outflow colors
+  
   let outflowColors = [color(238, 174, 255), color(204, 129, 255), color(153, 51, 255), color(102, 0, 204), color(51, 0, 102)];
   let outflowLabels = ['1-2 rivers', '3-5 rivers', '6-8 rivers', '9-12 rivers', '> 12 rivers'];
 
   for (let i = 0; i < outflowColors.length; i++) {
     fill(outflowColors[i]);
     rect(legendX, legendY + (riverColors.length + i + 3) * (boxHeight + 10), boxWidth, boxHeight, radius); 
-    fill(255); // White text color
+    fill(255); 
     textSize(12);
     text(outflowLabels[i], legendX + boxWidth + 10, legendY + (riverColors.length + i + 3) * (boxHeight + 10) + boxHeight / 2);
   }
