@@ -1,114 +1,115 @@
 let table;
-let outflows = {}; // Object to store seas (outflows) and associated rivers
+let outflows = {}; // Oggetto per memorizzare sbocchi (seas) e i fiumi associati
 
 function preload() {
-  // Load the CSV file
+  // Carica il file CSV
   table = loadTable('Rivers.csv', 'csv', 'header');
 }
 
 function setup() {
-  // Impostiamo il canvas per adattarsi alle dimensioni della finestra
-  createCanvas(windowWidth, windowHeight); // Make the canvas responsive to window size
-  textFont('Gill Sans'); // Font for title and texts
+  // Imposta il canvas per adattarsi alle dimensioni della finestra
+  createCanvas(windowWidth, windowHeight); // Canvas responsivo
+  textFont('Gill Sans'); // Font per titolo e testi
   noLoop();
 
-  // Organize rivers based on their outflow
+  // Organizza i fiumi in base al loro sbocco
   for (let i = 0; i < table.getRowCount(); i++) {
     let row = table.getRow(i);
-    let riverName = row.getString('name');  // River name from the "name" column
+    let riverName = row.getString('name'); // Nome del fiume
     let outflow = row.getString('outflow');
     
-    // Create outflow array if it doesn't exist
+    // Crea un array per lo sbocco se non esiste
     if (!outflows[outflow]) {
       outflows[outflow] = [];
     }
     
-    // Add the river to the outflow's list
+    // Aggiunge il fiume alla lista dello sbocco
     outflows[outflow].push(riverName);
   }
 
   // Aggiorna dinamicamente l'altezza del canvas in base ai dati
-  let totalElements = table.getRowCount(); // Total number of rivers
-  resizeCanvas(windowWidth, max(windowHeight, totalElements * 20 + 300)); // 300px space for the title
+  let totalElements = table.getRowCount(); // Numero totale di fiumi
+  resizeCanvas(windowWidth, max(windowHeight, totalElements * 20 + 300)); // 300px per lo spazio del titolo
 }
 
 function draw() {
-  // Aggiorniamo il colore di sfondo in base alla larghezza della finestra
+  // Aggiorna il colore di sfondo in base alla larghezza della finestra
   let bgColor = getResponsiveBackgroundColor(windowWidth);
   background(bgColor); // Colore di sfondo responsivo
 
-  // Draw title
+  // Disegna il titolo
   drawTitle();
 
-  // Layout parameters for data (starting after the title)
-  let leftMargin = width * 0.25; // Adjusted for responsive design
-  let rightMargin = width * 0.75; // Left-aligned position for outflow circles (centered)
-  let textOffset = 30; // Distance between circle and sea name
-  let lineSpacing = (height - 200) / (table.getRowCount() + 2); // Dynamic space between rivers (adjust for title space)
-  let radius = 10; // Radius of the outflow circles
+  // Parametri di layout per i dati (partendo dopo il titolo)
+  let leftMargin = width * 0.25; // Margine sinistro per il nome dei fiumi
+  let rightMargin = width * 0.75; // Posizione per i cerchi degli sbocchi
+  let textOffset = 30; // Distanza tra cerchio e nome del mare
+  let lineSpacing = (height - 200) / (table.getRowCount() + 2); // Spaziatura dinamica tra i fiumi
+  let radius = 10; // Raggio dei cerchi degli sbocchi
 
-  // Dynamic positions of outflows
-  let outflowPositions = {}; // Store horizontal positions of seas
+  // Posizioni dinamiche degli sbocchi
+  let outflowPositions = {}; // Posizioni verticali degli sbocchi
   let index = 0;
 
-  // Position outflow circles evenly
-  let outflowSpacing = (height - 200) / (Object.keys(outflows).length + 1); // Adjusted for title space
+  // Posiziona i cerchi degli sbocchi uniformemente
+  let outflowSpacing = (height - 200) / (Object.keys(outflows).length + 1);
   for (let outflow in outflows) {
-    let yPos = outflowSpacing * (index + 3); // Vertical dynamic space
+    let yPos = outflowSpacing * (index + 3); // Spaziatura verticale dinamica
     outflowPositions[outflow] = yPos;
 
-    // Calculate color based on the number of rivers
+    // Colore in base al numero di fiumi associati
     let numRivers = outflows[outflow].length;
-    let outflowColor = getOutflowColor(numRivers); // Function to determine color based on rivers
+    let outflowColor = getOutflowColor(numRivers);
 
-    // Draw the outflow circle with no stroke
+    // Disegna il cerchio dello sbocco senza bordo
     fill(outflowColor);
-    noStroke(); // Remove circle border
+    noStroke();
     ellipse(rightMargin, yPos, radius * 4);
 
-    // Add the sea name (outflow), shifted to the right of the circle
-    fill(255); // White color for text
+    // Aggiunge il nome dello sbocco (mare), spostato a destra del cerchio
+    fill(255); // Testo bianco
     textSize(14);
     textAlign(LEFT, CENTER);
-    text(outflow, rightMargin + textOffset, yPos); // Shifted right from the circle
+    text(outflow, rightMargin + textOffset, yPos);
 
     index++;
   }
 
-  // Draw river names and lines below the title
+  // Disegna i nomi dei fiumi e le linee
   for (let i = 0; i < table.getRowCount(); i++) {
     let row = table.getRow(i);
-    let riverName = row.getString('name');  // River name
+    let riverName = row.getString('name');  // Nome del fiume
     let outflow = row.getString('outflow');
 
-    // Dynamic vertical position for rivers
-    let yPos = lineSpacing * (i + 1) + 100; // Start below the title
+    // Posizione verticale dinamica per i fiumi
+    let yPos = lineSpacing * (i + 1) + 100;
 
-    // Corresponding outflow position
+    // Posizione corrispondente dello sbocco
     let outflowPosY = outflowPositions[outflow];
 
-    // Calculate the river length
-    let length = row.getNum('length');
+    // Calcola l'area del fiume
+    let area = row.getNum('area');
 
-    // Map the length to 5 intervals, from shortest to longest
+    // Spessore della linea in base all'area del fiume (ridotto)
+    let lineThickness = map(area, 1000, 3000000, 1, 8);
+
+    // Colore del fiume (può restare basato sulla lunghezza se necessario)
+    let length = row.getNum('length');
     let riverColor = getRiverColor(length);
 
-    // Calculate the line thickness based on river length
-    let lineThickness = map(length, 1000, 7000, 2, 10); // Thickness ranging from 2 to 10px
+    // Posizione iniziale della linea
+    let startX = leftMargin + 80; // La linea inizia a 80px dalla sinistra
+    drawCurvedLine(startX, yPos, rightMargin, outflowPosY, riverColor, lineThickness);
 
-    // Line start position: use a fixed position for all rivers
-    let startX = leftMargin + 80; // Line starts 80px from the left (shifted further left)
-    drawCurvedLine(startX, yPos, rightMargin, outflowPosY, riverColor, lineThickness); // Draw the line from the text
-
-    // Align river name to the right of the left margin
-    fill(255); // White color for text
-    noStroke(); // Remove outline from text
-    textSize(12); // Set a constant size for all river names
-    textAlign(RIGHT, CENTER); // Align to the right of the left margin
-    text(riverName, startX - 10, yPos); // Position closer to the start of the line (add space if needed)
+    // Allinea il nome del fiume a destra del margine sinistro
+    fill(255);
+    noStroke();
+    textSize(12);
+    textAlign(RIGHT, CENTER);
+    text(riverName, startX - 10, yPos);
   }
 
-  // Draw the legend
+    // Draw the legend
   drawLegend();
 }
 
@@ -215,7 +216,7 @@ function drawLegend() {
   // Line thickness description
   textSize(11);
   textAlign(LEFT, CENTER);
-  text('Line thickness: the greater the river length, the thicker the line', legendX, legendY + riverColors.length * (boxHeight + 10) + 20);
+  text('Line thickness: the greater the river area, the thicker the line', legendX, legendY + riverColors.length * (boxHeight + 10) + 20);
   
   // Title for Outflows (moved higher)
   textSize(16);
