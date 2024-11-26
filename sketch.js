@@ -3,7 +3,7 @@ let outflows = {}; // Oggetto per memorizzare gli outflows e i fiumi associati
 
 function preload() {
   //file di riferimento .CSV
-  table = loadTable('Rivers.csv', 'csv', 'header');
+  table = loadTable('rivers.csv', 'csv', 'header');
 }
 
 function setup() {
